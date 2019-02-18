@@ -1,10 +1,11 @@
 ﻿<?php
-
-$ponctuations = [];
+// stores the punctuations signs, numbers and spaces in the text and their position
+$punctuations = [];
 
 function save_punctuation(string $text): string
 {
 	global $punctuations;
+	$punctuactions = [];
 	for($i = 0; $i < strlen($text); $i++)
 	{
 		switch ($text[$i])
@@ -98,16 +99,18 @@ function save_punctuation(string $text): string
 
 function restore_punctuation(string $text): string
 {
-	echo "been there done what?";
 	global $punctuations;
-	foreach ($punctuations as $index => $punct) {
-		$text = substr($text, 0, $index) . $punct . substr($text, $index);
+	if(!empty($punctuations))
+	{
+		foreach ($punctuations as $index => $punct) {
+			$text = substr($text, 0, $index) . $punct . substr($text, $index);
+		}
 	}
-	$punctuations=[];
+	$punctuations = [];
 	return $text;
 }
 
-function dump($in)
+function dump(mixed $in)
 {
 	echo '<pre>';
 	var_dump($in);
@@ -128,7 +131,7 @@ function encrypt(string $message, string $key): string
 	{
 		$msgLetterIndex = array_search($message[$i], $alpha);
 		$keyLetterIndex = array_search($key[$i % $keyLength], $alpha);
-		$cryptedChar = $alpha[ ($msgLetterIndex + $keyLetterIndex) % $alphaLength ];
+		$cryptedChar = $alpha[ ($msgLetterIndex + $keyLetterIndex + 1) % $alphaLength ];
 		$result .= $cryptedChar ;
 	}
 	return $result;
@@ -148,7 +151,7 @@ function decrypt(string $message, string $key): string
 	{
 		$msgLetterIndex = array_search($message[$i], $alpha);
 		$keyLetterIndex = array_search($key[$i % $keyLength], $alpha);
-		$plainChar = $alpha[ ($msgLetterIndex + $keyLetterIndex) % $alphaLength ];
+		$plainChar = $alpha[ ($msgLetterIndex - $keyLetterIndex + 2*26 - 1) % $alphaLength ]; // added 2*26 to make sur the modulus will be positive.
 		$result .= $plainChar ;
 	}
 	return $result;
@@ -158,7 +161,6 @@ function decrypt(string $message, string $key): string
 
 if(isset($_POST['pwd']) && isset($_POST['usr_in']) && isset($_POST['cmd'])) // Password and message are set
 {
-	dump($_POST);
 	$_POST['pwd'] = strtolower(preg_replace("/(?:[^a-zA-Z]*)/" , '',$_POST['pwd'])); //password can't contain anything other than lowercase a-z
 
 	//save's the punctuations if needed and/or removes them from the string
@@ -183,5 +185,4 @@ if(isset($_POST['pwd']) && isset($_POST['usr_in']) && isset($_POST['cmd'])) // P
 		echo "Error: The form you submitted could not be parsed to an action";
 	}
 }
-dump($punctuations);
 ?>
