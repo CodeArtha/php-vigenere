@@ -25,8 +25,12 @@
 		<div class="form-group">
 			<input type="password" name="pwd" placeholder="Password" class="form-control"></input>
 		</div>
-		<button type="submit" name="cmd" value="hide">Crypt</button>
-		<button type="submit" name="cmd" value="seek">Decrypt</button>
+		<div class="form-group form-check">
+    		<input type="checkbox" class="form-check-input" name="keepPunct" value="yes" id="keepPunct" checked>
+    		<label class="form-check-label" for="keepPunct" name="keepPunct">Keep the punctuations and numbers? (otherwise they will be lost)</label>
+  		</div>
+		<button type="submit" class="btn" name="cmd" value="hide">Encrypt</button>
+		<button type="submit" class="btn" name="cmd" value="seek">Decrypt</button>
 	</form>
 
 </div><!-- Closing container -->
