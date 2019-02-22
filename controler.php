@@ -121,17 +121,21 @@ function encrypt(string $message, string $key): string
 {
 	$message = strtolower($message);
 	$result = '';
-	$alpha = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+	$index2alpha = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+	$alpha2index = ["a" => 0, "b" => 1, "c" => 2, "d" => 3, "e" => 4, "f" => 5, "g" => 6, "h" => 7, "i" => 8, "j" => 9, "k" => 10, "l" => 11, "m" => 12, "n" => 13, "o" => 14, "p" => 15, "q" => 16, "r" => 17, "s" => 18, "t" => 19, "u" => 20, "v" => 21, "w" => 22, "x" => 23, "y" => 24, "z" => 25];
 	$msgLength = strlen($message);
 	$keyLength = strlen($key);
-	$alphaLength = count($alpha);
+	$alphaLength = count($index2alpha);
 	$cryptedChar;
 
 	for($i = 0; $i < $msgLength; $i++)
 	{
-		$msgLetterIndex = array_search($message[$i], $alpha);
-		$keyLetterIndex = array_search($key[$i % $keyLength], $alpha);
-		$cryptedChar = $alpha[ ($msgLetterIndex + $keyLetterIndex + 1) % $alphaLength ];
+		//array_search is inefficient
+		//$msgLetterIndex = array_search($message[$i], $alpha);
+		//$keyLetterIndex = array_search($key[$i % $keyLength], $alpha);
+		$msgLetterIndex = $alpha2index[$message[$i]];
+		$keyLetterIndex = $alpha2index[$key[$i % $keyLength]];
+		$cryptedChar = $index2alpha[ ($msgLetterIndex + $keyLetterIndex + 1) % $alphaLength ];
 		$result .= $cryptedChar ;
 	}
 	return $result;
@@ -141,17 +145,18 @@ function decrypt(string $message, string $key): string
 {
 	$message = strtolower($message);
 	$result = '';
-	$alpha = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+	$index2alpha = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+	$alpha2index = ["a" => 0, "b" => 1, "c" => 2, "d" => 3, "e" => 4, "f" => 5, "g" => 6, "h" => 7, "i" => 8, "j" => 9, "k" => 10, "l" => 11, "m" => 12, "n" => 13, "o" => 14, "p" => 15, "q" => 16, "r" => 17, "s" => 18, "t" => 19, "u" => 20, "v" => 21, "w" => 22, "x" => 23, "y" => 24, "z" => 25];
 	$msgLength = strlen($message);
 	$keyLength = strlen($key);
-	$alphaLength = count($alpha);
+	$alphaLength = count($index2alpha);
 	$plainChar;
 
 	for($i = 0; $i < $msgLength; $i++)
 	{
-		$msgLetterIndex = array_search($message[$i], $alpha);
-		$keyLetterIndex = array_search($key[$i % $keyLength], $alpha);
-		$plainChar = $alpha[ ($msgLetterIndex - $keyLetterIndex + 2*26 - 1) % $alphaLength ]; // added 2*26 to make sur the modulus will be positive.
+		$msgLetterIndex = $alpha2index[$message[$i]];
+		$keyLetterIndex = $alpha2index[$key[$i % $keyLength]];
+		$plainChar = $index2alpha[ ($msgLetterIndex - $keyLetterIndex + 2*26 - 1) % $alphaLength ]; // added 2*26 to make sur the modulus will be positive.
 		$result .= $plainChar ;
 	}
 	return $result;
@@ -176,11 +181,19 @@ if(isset($_POST['pwd']) && isset($_POST['usr_in']) && isset($_POST['cmd'])) // P
 	//do the magic the user requested
 	if(htmlspecialchars($_POST['cmd']) === "hide")
 	{
-		$_POST['usr_in'] = ($_POST['keepPunct'] == "yes") ? restore_punctuation(encrypt($_POST['usr_in'], $_POST['pwd'])) : encrypt($_POST['usr_in'], $_POST['pwd']);
+		// $start_time = microtime(true);
+		$var = encrypt($_POST['usr_in'], $_POST['pwd']);
+		// $stop_time = microtime(true);
+		// echo ($stop_time - $start_time); //0.001778 => 0.000477 = -73%
+		$_POST['usr_in'] = ($_POST['keepPunct'] == "yes") ? restore_punctuation($var) : $var ;
 	}
 	else if (htmlspecialchars($_POST['cmd']) === "seek")
 	{
-		$_POST['usr_in'] = ($_POST['keepPunct'] == "yes") ? restore_punctuation(decrypt($_POST['usr_in'], $_POST['pwd'])) : decrypt($_POST['usr_in'], $_POST['pwd']);
+		// $start_time = microtime(true);
+		$var = decrypt($_POST['usr_in'], $_POST['pwd']);
+		// $stop_time = microtime(true);
+		// echo ($stop_time - $start_time); //0.001169 => 0.0005269 = -55%
+		$_POST['usr_in'] = ($_POST['keepPunct'] == "yes") ? restore_punctuation($var) : $var;
 	}else{
 		echo "Error: The form you submitted could not be parsed to an action";
 	}
